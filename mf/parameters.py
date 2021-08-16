@@ -20,7 +20,8 @@ def parse_args():
     parser.add_argument('--user_num', type=int, required=True)
     parser.add_argument('--item_num', type=int, required=True)
     parser.add_argument('--negative_sampling_ratio', type=int, default=1)
-    parser.add_argument('--group_size', type=int, default=3, help='For GBPR')
+    parser.add_argument('--group_size', type=int, default=3,
+                        help='For GBPR')  # TODO: -1?
     parser.add_argument('--group_coefficient_rho',
                         type=float,
                         default=0.5,
@@ -32,6 +33,11 @@ def parse_args():
                         type=str,
                         default='BCE',
                         choices=['BCE', 'CE', 'BPR', 'GBPR'])
+    parser.add_argument(
+        '--evaluation_metrics',
+        type=str,
+        nargs='+',
+        default=['AUC', 'MRR', 'NDCG@10', 'NDCG@50', 'Recall@10', 'Recall@50'])
     parser.add_argument('--log_path', type=str, default='./log/')
     parser.add_argument('--tensorboard_runs_path', type=str, default='./runs/')
     args, unknown = parser.parse_known_args()

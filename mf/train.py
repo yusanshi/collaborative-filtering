@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 import numpy as np
-import pandas as pd
-import json
 import os
 import time
 import datetime
@@ -13,7 +11,9 @@ from torch.utils.data import DataLoader
 
 from mf.mf import MF
 from mf.parameters import parse_args
-from mf.utils import EarlyStopping, evaluate, time_since, create_logger, dict2table, deep_apply, get_dataset_name
+from mf.early_stop import EarlyStopping
+from mf.utils import time_since, create_logger, dict2table, deep_apply, get_dataset_name
+from mf.evaluate import evaluate
 from mf.loss import BPRLoss, GBPRLoss
 from mf.dataset import TrainingDataset
 
@@ -25,13 +25,12 @@ def train():
     model = MF(args).to(device)
     logger.info(model)
 
-    # model.eval()
-    # metrics, _ = evaluate(model, args.validation_data_path)
-    # model.train()
-    # logger.info(f'Initial metrics on validation set {deep_apply(metrics)}')
-    # best_checkpoint = copy.deepcopy(model.state_dict())
-
-    # best_val_metrics = copy.deepcopy(metrics)
+    model.eval()
+    metrics, _ = evaluate(model, args.validation_data_path, logger)
+    model.train()
+    logger.info(f'Initial metrics on validation set {deep_apply(metrics)}')
+    best_checkpoint = copy.deepcopy(model.state_dict())
+    best_val_metrics = copy.deepcopy(metrics)
 
     if args.loss_type == 'BCE':
         criterion = nn.BCEWithLogitsLoss()
@@ -136,25 +135,26 @@ def train():
                                 f"Time {time_since(start_time)}, epoch {epoch}, batch {batch}, current loss {loss.item():.4f}, average loss {np.mean(loss_full):.4f}, latest average loss {np.mean(loss_full[-10:]):.4f}"
                             )
                         # TODO compare BPR with BCE and CE
-                # if epoch % args.num_epochs_validate == 0:
-                #     model.eval()
-                #     metrics, overall = evaluate(model,
-                #                                 args.validation_data_path)
-                #     model.train()
+                if epoch % args.num_epochs_validate == 0:
+                    model.eval()
+                    metrics, overall = evaluate(model,
+                                                args.validation_data_path,
+                                                logger)
+                    model.train()
 
-                #     for metric, value in metrics.items():
-                #         writer.add_scalar(f'Validation/{metric}', value, epoch)
-                #     logger.info(
-                #         f"Time {time_since(start_time)}, epoch {epoch}, metrics {deep_apply(metrics)}"
-                #     )
+                    for metric, value in metrics.items():
+                        writer.add_scalar(f'Validation/{metric}', value, epoch)
+                    logger.info(
+                        f"Time {time_since(start_time)}, epoch {epoch}, metrics {deep_apply(metrics)}"
+                    )
 
-                #     early_stop, get_better = early_stopping(-overall)
-                #     if early_stop:
-                #         logger.info('Early stopped')
-                #         break
-                #     elif get_better:
-                #         best_checkpoint = copy.deepcopy(model.state_dict())
-                #         best_val_metrics = copy.deepcopy(metrics)
+                    early_stop, get_better = early_stopping(-overall)
+                    if early_stop:
+                        logger.info('Early stopped')
+                        break
+                    elif get_better:
+                        best_checkpoint = copy.deepcopy(model.state_dict())
+                        best_val_metrics = copy.deepcopy(metrics)
 
     except KeyboardInterrupt:
         logger.info('Stop in advance')
@@ -162,10 +162,10 @@ def train():
     logger.info(
         f'Best metrics on validation set\n{dict2table(best_val_metrics)}')
 
-    # model.load_state_dict(best_checkpoint)
-    # model.eval()
-    # metrics, _ = evaluate(model, args.test_data_path)
-    # logger.info(f'Metrics on test set\n{dict2table(metrics)}')
+    model.load_state_dict(best_checkpoint)
+    model.eval()
+    metrics, _ = evaluate(model, args.test_data_path, logger)
+    logger.info(f'Metrics on test set\n{dict2table(metrics)}')
 
 
 if __name__ == '__main__':
