@@ -26,9 +26,10 @@ def parse_args():
                         type=float,
                         default=0.5,
                         help='For GBPR')
-    parser.add_argument('--train_data_path', type=str, required=True)
-    parser.add_argument('--validation_data_path', type=str, required=True)
-    parser.add_argument('--test_data_path', type=str, required=True)
+    parser.add_argument('--model_name',
+                        type=str,
+                        default='MF',
+                        choices=['MF', 'MLP'])
     parser.add_argument('--loss_type',
                         type=str,
                         default='BCE',
@@ -38,6 +39,7 @@ def parse_args():
         type=str,
         nargs='+',
         default=['AUC', 'MRR', 'NDCG@10', 'NDCG@50', 'Recall@10', 'Recall@50'])
+    parser.add_argument('--dataset_path', type=str, required=True)
     parser.add_argument('--log_path', type=str, default='./log/')
     parser.add_argument('--tensorboard_runs_path', type=str, default='./runs/')
     args, unknown = parser.parse_known_args()

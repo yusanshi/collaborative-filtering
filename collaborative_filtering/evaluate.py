@@ -2,10 +2,11 @@ import numpy as np
 import pandas as pd
 import torch
 
+from os import path
 from tqdm import tqdm
-from mf.metrics import calculate_metric
-from mf.parameters import parse_args
 from multiprocessing import Pool
+from .metrics import calculate_metric
+from .parameters import parse_args
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 args = parse_args()
@@ -21,20 +22,22 @@ def calculate_single_user_metric(pair):
 
 
 @torch.no_grad()
-def evaluate(model, evaluation_data_path, logger):
-    metrics = {}
-    if 'valid' in evaluation_data_path and evaluation_data_path in _evaluation_cache:
-        user2ranking_list = _evaluation_cache[evaluation_data_path]
-    else:
-        train_df = pd.read_table(args.train_data_path,
-                                 sep=' ',
-                                 names=['user', 'item']).drop_duplicates() - 1
+def evaluate(model, evaluation_mode, logger):
+    assert evaluation_mode in ['valid', 'test']
 
+    metrics = {}
+    evaluation_file_path = path.join(args.dataset_path,
+                                     f'{evaluation_mode}.tsv')
+    if evaluation_mode == 'valid' and evaluation_file_path in _evaluation_cache:
+        user2ranking_list = _evaluation_cache[evaluation_file_path]
+    else:
+        train_df = pd.read_table(path.join(args.dataset_path,
+                                           'train.tsv')).drop_duplicates()
+        assert train_df.columns.tolist() == ['user', 'item']
         train_user2positive = train_df.groupby('user',
                                                sort=False)['item'].apply(set)
-        evaluation_df = pd.read_table(
-            evaluation_data_path, sep=' ', names=['user', 'item'
-                                                  ]).drop_duplicates() - 1
+        evaluation_df = pd.read_table(evaluation_file_path).drop_duplicates()
+        assert evaluation_df.columns.tolist() == ['user', 'item']
         evaluation_user2positive = evaluation_df.groupby(
             'user', sort=False)['item'].apply(set)
         all_items = set(range(args.item_num))
@@ -57,8 +60,8 @@ def evaluate(model, evaluation_data_path, logger):
                 f'Drop {args.user_num - len(user2ranking_list)} users in evaluation'
             )
 
-        if 'valid' in evaluation_data_path:
-            _evaluation_cache[evaluation_data_path] = user2ranking_list
+        if evaluation_mode == 'valid':
+            _evaluation_cache[evaluation_file_path] = user2ranking_list
 
     tasks = []
     for user, ranking_list in tqdm(user2ranking_list.items(),

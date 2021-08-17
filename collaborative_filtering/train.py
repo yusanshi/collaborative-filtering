@@ -9,24 +9,31 @@ import copy
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 
-from mf.mf import MF
-from mf.parameters import parse_args
-from mf.early_stop import EarlyStopping
-from mf.utils import time_since, create_logger, dict2table, deep_apply, get_dataset_name
-from mf.evaluate import evaluate
-from mf.loss import BPRLoss, GBPRLoss
-from mf.dataset import TrainingDataset
+from .parameters import parse_args
+from .early_stop import EarlyStopping
+from .utils import time_since, create_logger, dict2table, deep_apply, get_dataset_name
+from .evaluate import evaluate
+from .model import MF, MLP
+from .loss import BPRLoss, GBPRLoss
+from .dataset import TrainingDataset
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 args = parse_args()
 
 
 def train():
-    model = MF(args).to(device)
+    if args.model_name == 'MF':
+        model = MF(args)
+    elif args.model_name == 'MLP':
+        model = MLP(args)
+    else:
+        raise NotImplementedError
+
+    model = model.to(device)
     logger.info(model)
 
     model.eval()
-    metrics, _ = evaluate(model, args.validation_data_path, logger)
+    metrics, _ = evaluate(model, 'valid', logger)
     model.train()
     logger.info(f'Initial metrics on validation set {deep_apply(metrics)}')
     best_checkpoint = copy.deepcopy(model.state_dict())
@@ -49,7 +56,7 @@ def train():
     start_time = time.time()
     writer = SummaryWriter(log_dir=os.path.join(
         args.tensorboard_runs_path,
-        f'{args.loss_type}-{get_dataset_name(args.train_data_path)}',
+        f'{args.model_name}-{args.loss_type}-{get_dataset_name(args.dataset_path)}',
         f"{str(datetime.datetime.now().replace(microsecond=0)).replace(' ', '_').replace(':', '-')}{'-remark-' + os.environ['REMARK'] if 'REMARK' in os.environ else ''}",
     ))
 
@@ -135,9 +142,7 @@ def train():
                             )
                 if epoch % args.num_epochs_validate == 0:
                     model.eval()
-                    metrics, overall = evaluate(model,
-                                                args.validation_data_path,
-                                                logger)
+                    metrics, overall = evaluate(model, 'valid', logger)
                     model.train()
 
                     for metric, value in metrics.items():
@@ -162,7 +167,7 @@ def train():
 
     model.load_state_dict(best_checkpoint)
     model.eval()
-    metrics, _ = evaluate(model, args.test_data_path, logger)
+    metrics, _ = evaluate(model, 'test', logger)
     logger.info(f'Metrics on test set\n{dict2table(metrics)}')
 
 
@@ -170,6 +175,5 @@ if __name__ == '__main__':
     logger = create_logger()
     logger.info(args)
     logger.info(f'Using device: {device}')
-    logger.info(
-        f'Training with dataset {get_dataset_name(args.train_data_path)}')
+    logger.info(f'Training with dataset {get_dataset_name(args.dataset_path)}')
     train()

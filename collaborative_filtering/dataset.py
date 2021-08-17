@@ -1,4 +1,6 @@
 from torch.utils.data import Dataset
+from os import path
+
 import pandas as pd
 import numpy as np
 import random
@@ -9,8 +11,9 @@ class TrainingDataset(Dataset):
         super().__init__()
         self.args = args
         df_positive = pd.read_table(
-            args.train_data_path, sep=' ',
-            names=['user', 'item']).drop_duplicates().sort_values('user') - 1
+            path.join(args.dataset_path,
+                      'train.tsv')).drop_duplicates().sort_values('user')
+        assert df_positive.columns.tolist() == ['user', 'item']
         positive_set = set(map(tuple, df_positive.values))
         user_indexs = df_positive['user'].values
         positive_num_map = df_positive.groupby('user').size().to_dict()
@@ -73,7 +76,7 @@ if __name__ == '__main__':
         __delattr__ = dict.__delitem__
 
     args = {
-        'train_data_path': 'data/ML100K/ML100K-copy1-train',
+        'dataset_path': 'data/ML100K-copy1',
         'user_num': 943,
         'item_num': 1682,
         'negative_sampling_ratio': 4,

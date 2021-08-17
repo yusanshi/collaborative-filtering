@@ -5,7 +5,7 @@ import coloredlogs
 import datetime
 import copy
 
-from mf.parameters import parse_args
+from .parameters import parse_args
 
 args = parse_args()
 
@@ -26,7 +26,8 @@ def create_logger():
                         fmt='%(asctime)s %(levelname)s %(message)s')
     log_dir = os.path.join(
         args.log_path,
-        f'{args.loss_type}-{get_dataset_name(args.train_data_path)}')
+        f'{args.model_name}-{args.loss_type}-{get_dataset_name(args.dataset_path)}'
+    )
     os.makedirs(log_dir, exist_ok=True)
     log_file_path = os.path.join(
         log_dir,
@@ -91,7 +92,5 @@ def dict2table(d, k_fn=str, v_fn=lambda x: f'{x:.4f}'):
     return '\n'.join(lines)
 
 
-def get_dataset_name(train_data_path):
-    filename_parts = train_data_path.split('/')[-1].split('-')
-    assert len(filename_parts) == 3
-    return '-'.join(filename_parts[:2])
+def get_dataset_name(dataset_path):
+    return os.path.abspath(dataset_path).split('/')[-1]
