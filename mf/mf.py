@@ -9,7 +9,8 @@ class MF(nn.Module):
         super().__init__()
         self.user_embedding = nn.Embedding(args.user_num, args.embedding_dim)
         self.item_embedding = nn.Embedding(args.item_num, args.embedding_dim)
-        self.linear = nn.Linear(args.embedding_dim, 1, bias=False)
+        self.linear = nn.Linear(args.embedding_dim, 1,
+                                bias=False)  # TODO bias?
 
     def forward(self, user_index, item_index):
         # batch_size, embedding_dim
@@ -18,5 +19,5 @@ class MF(nn.Module):
             self.item_embedding(item_index),
         )
         # batch_size
-        score = self.linear(vector).squeeze(dim=1)  # TODO .sum(dim=-1)?
+        score = self.linear(vector).squeeze(dim=1)
         return score

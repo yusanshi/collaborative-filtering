@@ -49,7 +49,7 @@ def train():
     start_time = time.time()
     writer = SummaryWriter(log_dir=os.path.join(
         args.tensorboard_runs_path,
-        f'TODO{get_dataset_name(args.train_data_path)}',
+        f'{args.loss_type}-{get_dataset_name(args.train_data_path)}',
         f"{str(datetime.datetime.now().replace(microsecond=0)).replace(' ', '_').replace(':', '-')}{'-remark-' + os.environ['REMARK'] if 'REMARK' in os.environ else ''}",
     ))
 
@@ -79,7 +79,6 @@ def train():
                             dataloader):
                         batch += 1
                         batch_size = user_indexs.size(0)
-                        # TODO sigmoid?
                         # 0 1 2 ...
                         # batch_size
                         positive_score = model(user_indexs,
@@ -134,7 +133,6 @@ def train():
                             logger.info(
                                 f"Time {time_since(start_time)}, epoch {epoch}, batch {batch}, current loss {loss.item():.4f}, average loss {np.mean(loss_full):.4f}, latest average loss {np.mean(loss_full[-10:]):.4f}"
                             )
-                        # TODO compare BPR with BCE and CE
                 if epoch % args.num_epochs_validate == 0:
                     model.eval()
                     metrics, overall = evaluate(model,

@@ -1,5 +1,4 @@
 import time
-import torch
 import os
 import logging
 import coloredlogs
@@ -8,7 +7,6 @@ import copy
 
 from mf.parameters import parse_args
 
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 args = parse_args()
 
 
@@ -21,26 +19,14 @@ def time_since(since):
     return time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
 
 
-def latest_checkpoint(directory):
-    if not os.path.exists(directory):
-        return None
-    all_checkpoints = {
-        int(x.split('.')[-2].split('-')[-1]): x
-        for x in os.listdir(directory) if 'keep' not in x
-    }
-    if not all_checkpoints:
-        return None
-    return os.path.join(directory,
-                        all_checkpoints[max(all_checkpoints.keys())])
-
-
 def create_logger():
     logger = logging.getLogger(__name__)
     coloredlogs.install(level='DEBUG',
                         logger=logger,
                         fmt='%(asctime)s %(levelname)s %(message)s')
-    log_dir = os.path.join(args.log_path,
-                           f'TODO{get_dataset_name(args.train_data_path)}')
+    log_dir = os.path.join(
+        args.log_path,
+        f'{args.loss_type}-{get_dataset_name(args.train_data_path)}')
     os.makedirs(log_dir, exist_ok=True)
     log_file_path = os.path.join(
         log_dir,

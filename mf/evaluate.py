@@ -5,12 +5,19 @@ import torch
 from tqdm import tqdm
 from mf.metrics import calculate_metric
 from mf.parameters import parse_args
+from multiprocessing import Pool
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 args = parse_args()
 
 # A simple cache mechanism for df reading and processing, since it will be run for many times
 _evaluation_cache = {}
+
+
+def calculate_single_user_metric(pair):
+    return [
+        calculate_metric(*pair, metric) for metric in args.evaluation_metrics
+    ]
 
 
 @torch.no_grad()
@@ -53,9 +60,9 @@ def evaluate(model, evaluation_data_path, logger):
         if 'valid' in evaluation_data_path:
             _evaluation_cache[evaluation_data_path] = user2ranking_list
 
-    metrics = {metric: [] for metric in args.evaluation_metrics}
-
-    for user, ranking_list in tqdm(user2ranking_list.items()):
+    tasks = []
+    for user, ranking_list in tqdm(user2ranking_list.items(),
+                                   desc='Evaluating users'):
         y_true = np.array([1] * len(ranking_list[True]) +
                           [0] * len(ranking_list[False]))
         item_indexs = torch.tensor(
@@ -63,11 +70,15 @@ def evaluate(model, evaluation_data_path, logger):
         user_indexs = torch.tensor(user).expand_as(item_indexs).to(device)
         y_pred = model(user_indexs, item_indexs)
         y_pred = y_pred.cpu().numpy()
-        for key in metrics:
-            metrics[key].append(calculate_metric(y_true, y_pred, key))
+        tasks.append((y_true, y_pred))
 
-    for key in metrics:
-        metrics[key] = np.mean(metrics[key])
+    with Pool(processes=args.num_workers) as pool:
+        results = pool.map(calculate_single_user_metric, tasks)
+    metrics = {
+        k: v
+        for k, v in zip(args.evaluation_metrics,
+                        np.array(results).mean(axis=0))
+    }
 
     overall = np.mean(list(metrics.values()))
     return metrics, overall
