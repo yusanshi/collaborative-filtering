@@ -16,7 +16,7 @@ A package for collaborative filtering recommendation.
 Install from <https://pypi.org/>:
 
 ```bash
-pip install collaborative_filtering
+pip install collaborative-filtering
 ```
 
 Or install it manually:
