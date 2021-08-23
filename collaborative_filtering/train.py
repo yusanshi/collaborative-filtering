@@ -175,5 +175,7 @@ if __name__ == '__main__':
     logger = create_logger()
     logger.info(args)
     logger.info(f'Using device: {device}')
-    logger.info(f'Training with dataset {get_dataset_name(args.dataset_path)}')
+    logger.info(
+        f'Training {args.model_name} with {args.loss_type} loss on {get_dataset_name(args.dataset_path)}'
+    )
     train()

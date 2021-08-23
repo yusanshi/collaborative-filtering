@@ -79,7 +79,7 @@ if __name__ == '__main__':
         'dataset_path': 'data/ML100K-copy1',
         'user_num': 943,
         'item_num': 1682,
-        'negative_sampling_ratio': 4,
+        'negative_sampling_ratio': 1,
         'loss_type': 'BPR',
         'group_size': 3
     }
