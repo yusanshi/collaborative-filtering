@@ -1,5 +1,7 @@
+import os
 import sys
-sys.path.insert(0, '../../')
+sys.path.insert(0, os.path.abspath('../../'))
+
 from collaborative_filtering import __version__
 
 # Configuration file for the Sphinx documentation builder.
