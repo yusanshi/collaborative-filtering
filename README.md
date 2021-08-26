@@ -2,16 +2,12 @@
 
 A package for collaborative filtering recommendation.
 
-
-
-Currently supported models:
+**Currently supported models**
 
 - MF: matrix factorization
 - MLP: multilayer perceptron
 
-
-
-Currently supported loss types:
+**Currently supported loss types**
 
 - BCE: binary cross-entropy
 - CE: cross-entropy (pseudo multiclass classification)
