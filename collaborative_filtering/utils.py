@@ -5,7 +5,7 @@ import coloredlogs
 import datetime
 import copy
 
-from .parameters import parse_args
+from collaborative_filtering.parameters import parse_args
 
 args = parse_args()
 

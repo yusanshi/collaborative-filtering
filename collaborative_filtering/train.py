@@ -9,13 +9,13 @@ import copy
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 
-from .parameters import parse_args
-from .early_stop import EarlyStopping
-from .utils import time_since, create_logger, dict2table, deep_apply, get_dataset_name
-from .evaluate import evaluate
-from .model import MF, MLP
-from .loss import BPRLoss, GBPRLoss
-from .dataset import TrainingDataset
+from collaborative_filtering.parameters import parse_args
+from collaborative_filtering.early_stop import EarlyStopping
+from collaborative_filtering.utils import time_since, create_logger, dict2table, deep_apply, get_dataset_name
+from collaborative_filtering.evaluate import evaluate
+from collaborative_filtering.model import MF, MLP
+from collaborative_filtering.loss import BPRLoss, GBPRLoss
+from collaborative_filtering.dataset import TrainingDataset
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 args = parse_args()

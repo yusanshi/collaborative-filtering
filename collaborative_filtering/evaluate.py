@@ -5,8 +5,8 @@ import torch
 from os import path
 from tqdm import tqdm
 from multiprocessing import Pool
-from .metrics import calculate_metric
-from .parameters import parse_args
+from collaborative_filtering.metrics import calculate_metric
+from collaborative_filtering.parameters import parse_args
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 args = parse_args()
