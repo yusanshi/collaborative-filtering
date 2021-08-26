@@ -74,6 +74,11 @@ python -m collaborative_filtering.train \
 ```
 Here we only list the most important parameters. For more details refer to `python -m collaborative_filtering.train -h` and `collaborative_filtering/parameters.py`.
 
+The stdout log and TensorBoard log are located in `os.path.join(log_path, f'{model_name}-{loss_type}-{dataset_path}')` and `os.path.join(tensorboard_runs_path, f'{model_name}-{loss_type}-{dataset_path}')`, respectively. To visualize metrics with TensorBoard, run:
+```bash
+tensorboard --logdir RUNS_PATH
+```
+
 ## TODO
 
 - [ ] More models
