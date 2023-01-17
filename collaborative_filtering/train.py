@@ -32,13 +32,6 @@ def train():
     model = model.to(device)
     logger.info(model)
 
-    model.eval()
-    metrics, _ = evaluate(model, 'valid', logger)
-    model.train()
-    logger.info(f'Initial metrics on validation set {deep_apply(metrics)}')
-    best_checkpoint = copy.deepcopy(model.state_dict())
-    best_val_metrics = copy.deepcopy(metrics)
-
     if args.loss_type == 'BCE':
         criterion = nn.BCEWithLogitsLoss()
     elif args.loss_type == 'CE':
@@ -82,20 +75,27 @@ def train():
                     # batch_size
                     # batch_size, negative_sampling_ratio
                     # batch_size, group_size
-                    for user_indexs, positive_item_indexs, negative_item_indexs, group_user_indexs in batch_pbar(
+                    for user_indexes, positive_item_indexes, negative_item_indexes, group_user_indexes in batch_pbar(
                             dataloader):
                         batch += 1
-                        batch_size = user_indexs.size(0)
+                        user_indexes = user_indexes.to(device)
+                        positive_item_indexes = positive_item_indexes.to(
+                            device)
+                        negative_item_indexes = negative_item_indexes.to(
+                            device)
+                        group_user_indexes = group_user_indexes.to(device)
+
+                        batch_size = user_indexes.size(0)
                         # 0 1 2 ...
                         # batch_size
-                        positive_score = model(user_indexs,
-                                               positive_item_indexs)
+                        positive_score = model(user_indexes,
+                                               positive_item_indexes)
                         # 0 0 0 0 1 1 1 1 2 2 2 2 ...
                         # batch_size * negative_sampling_ratio
                         negative_score = model(
-                            user_indexs.repeat_interleave(
+                            user_indexes.repeat_interleave(
                                 args.negative_sampling_ratio),
-                            negative_item_indexs.flatten())
+                            negative_item_indexes.flatten())
 
                         if args.loss_type == 'BCE':
                             y_pred = torch.cat(
@@ -122,8 +122,8 @@ def train():
                         elif args.loss_type == 'GBPR':
                             # batch_size, group_size
                             group_positive_score = model(
-                                group_user_indexs.flatten(),
-                                positive_item_indexs.repeat_interleave(
+                                group_user_indexes.flatten(),
+                                positive_item_indexes.repeat_interleave(
                                     args.group_size),
                             ).view(batch_size, args.group_size)
                             loss = criterion(positive_score, negative_score,

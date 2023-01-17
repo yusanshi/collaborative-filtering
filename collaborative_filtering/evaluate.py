@@ -68,10 +68,10 @@ def evaluate(model, evaluation_mode, logger):
                                    desc='Evaluating users'):
         y_true = np.array([1] * len(ranking_list[True]) +
                           [0] * len(ranking_list[False]))
-        item_indexs = torch.tensor(
+        item_indexes = torch.tensor(
             list(ranking_list[True]) + list(ranking_list[False])).to(device)
-        user_indexs = torch.tensor(user).expand_as(item_indexs).to(device)
-        y_pred = model(user_indexs, item_indexs)
+        user_indexes = torch.tensor(user).expand_as(item_indexes).to(device)
+        y_pred = model(user_indexes, item_indexes)
         y_pred = y_pred.cpu().numpy()
         tasks.append((y_true, y_pred))
 

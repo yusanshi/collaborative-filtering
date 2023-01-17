@@ -40,7 +40,7 @@ pip install .
 
 ### Prepare the dataset
 
-You should specify the dataset by passing the `--dataset_path` parameter. The parameter value must be the directory path with `train.tsv`, `valid.tsv` and `test.tsv` in it. Each file must be a two-columns TSV file with `user` and `item` as headers, user indexs and item indexs (both are 0-based) as body. An example:
+You should specify the dataset by passing the `--dataset_path` parameter. The parameter value must be the directory path with `train.tsv`, `valid.tsv` and `test.tsv` in it. Each file must be a two-columns TSV file with `user` and `item` as headers, user indexes and item indexes (both are 0-based) as body. An example:
 ```tsv
 user	item
 0	241
@@ -56,7 +56,7 @@ wget https://github.com/yusanshi/collaborative-filtering/files/7052355/dataset.t
 tar -xzvf dataset.tar.gz
 ```
 
-Besides the `--dataset_path` parameter, you should also provide the `--user_num` and `--item_num` parameters. For users, make sure this formula holds: `user_num >= max(max(training user indexs), max(validation user indexs), max(test user indexs)) + 1`. The same for items. Based on the formulas, you can write a simple script to get the `user_num` and `item_num` for a dataset.
+Besides the `--dataset_path` parameter, you should also provide the `--user_num` and `--item_num` parameters. For users, make sure this formula holds: `user_num >= max(max(training user indexes), max(validation user indexes), max(test user indexes)) + 1`. The same for items. Based on the formulas, you can write a simple script to get the `user_num` and `item_num` for a dataset.
 
 > For Quick Start users: If you use the datasets provided by us, for ML100K dataset, they are `--user_num 943 --item_num 1682`.
 

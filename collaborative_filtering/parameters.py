@@ -11,6 +11,8 @@ def parse_args():
 
     parser.add_argument('--num_epochs', type=int, default=1000)
     parser.add_argument('--learning_rate', type=float, default=0.001)
+    # TODO check this parameter!
+    parser.add_argument('--weight_decay', type=float, default=0.000001)
     parser.add_argument('--batch_size', type=int, default=256)
     parser.add_argument('--num_workers', type=int, default=16)
     parser.add_argument('--embedding_dim', type=int, default=100)
@@ -42,6 +44,8 @@ def parse_args():
     parser.add_argument('--dataset_path', type=str, required=True)
     parser.add_argument('--log_path', type=str, default='./log/')
     parser.add_argument('--tensorboard_runs_path', type=str, default='./runs/')
+    # TODO: for debugging purpose
+    parser.add_argument('--random_user', type=str2bool, default=False)
     args, unknown = parser.parse_known_args()
     if len(unknown) > 0:
         print('Warning: you have got some parameters wrong input')

@@ -7,6 +7,7 @@ import random
 
 
 class TrainingDataset(Dataset):
+
     def __init__(self, args):
         super().__init__()
         self.args = args
@@ -15,19 +16,19 @@ class TrainingDataset(Dataset):
                       'train.tsv')).drop_duplicates().sort_values('user')
         assert df_positive.columns.tolist() == ['user', 'item']
         positive_set = set(map(tuple, df_positive.values))
-        user_indexs = df_positive['user'].values
+        user_indexes = df_positive['user'].values
         positive_num_map = df_positive.groupby('user').size().to_dict()
-        positive_item_indexs = df_positive['item'].values
-        negative_item_indexs = np.concatenate([
+        positive_item_indexes = df_positive['item'].values
+        negative_item_indexes = np.concatenate([
             random.sample(range(args.item_num),
                           v * args.negative_sampling_ratio)
             for v in positive_num_map.values()
         ],
-                                              axis=0)
+                                               axis=0)
 
         negative_set = set(
-            zip(user_indexs.repeat(args.negative_sampling_ratio),
-                negative_item_indexs))
+            zip(user_indexes.repeat(args.negative_sampling_ratio),
+                negative_item_indexes))
         common = positive_set & negative_set
         negative_set = negative_set - positive_set
         for e in common:
@@ -38,29 +39,29 @@ class TrainingDataset(Dataset):
                     negative_set.add(pair)
                     break
 
-        negative_item_indexs = pd.DataFrame(
+        negative_item_indexes = pd.DataFrame(
             np.array([*negative_set]),
             columns=['user',
                      'item']).sort_values('user')['item'].values.reshape(
-                         user_indexs.shape[0], args.negative_sampling_ratio)
-        self.user_indexs = user_indexs
-        self.positive_item_indexs = positive_item_indexs
-        self.negative_item_indexs = negative_item_indexs
+                         user_indexes.shape[0], args.negative_sampling_ratio)
+        self.user_indexes = user_indexes
+        self.positive_item_indexes = positive_item_indexes
+        self.negative_item_indexes = negative_item_indexes
 
         if args.loss_type == 'GBPR':
-            self.group_user_indexs = np.stack([
+            self.group_user_indexes = np.stack([
                 random.sample(range(args.user_num), args.group_size)
-                for _ in range(len(user_indexs))
+                for _ in range(len(user_indexes))
             ])
 
     def __len__(self):
-        return len(self.user_indexs)
+        return len(self.user_indexes)
 
     def __getitem__(self, index):
         return (
-            self.user_indexs[index],
-            self.positive_item_indexs[index],
-            self.negative_item_indexs[index],
-            self.group_user_indexs[index]
+            self.user_indexes[index],
+            self.positive_item_indexes[index],
+            self.negative_item_indexes[index],
+            self.group_user_indexes[index]
             if self.args.loss_type == 'GBPR' else 0,
         )
